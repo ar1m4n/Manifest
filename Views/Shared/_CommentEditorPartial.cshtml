@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Identity
+@using Manifest.Data
+
+@model ApplicationUserComment
+
+<form class="md-form" asp-controller="Home" asp-action="ChangeComment" method="post">
+    <i class="fa fa-pencil prefix"></i>
+    <input asp-for="FromUserId" type="hidden" />
+    <input asp-for="ToUserId" type="hidden" />
+    <textarea asp-for="Comment" class="md-textarea form-control" rows="3"></textarea>
+    <label asp-for="Comment">Comment</label>
+    <div class="container-login100-form-btn">
+        <div class="wrap-login100-form-btn">
+            <div class="login100-form-bgbtn"></div>
+            <button class="login100-form-btn" type="submit">
+                Save
+            </button>
+        </div>
+    </div>
+</form>

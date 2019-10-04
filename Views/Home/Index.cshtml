@@ -1,0 +1,38 @@
+﻿@model List<ApplicationUser>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container-fluid d-flex justify-content-center">
+@for(int i = 0; i < Model.Count(); i+=4)
+{
+	<div class="row flex-row" >
+	@for(int j = i; j < Model.Count() && j < i + 4; j++)
+	{
+		ApplicationUser el = Model.ElementAt(j);
+		var largePicUrl = el.FbProfilePicUrl + "?type=large";
+		var headerClass = "card";
+		if(!string.IsNullOrEmpty(el.CommentsFrom.First().Comment))
+			headerClass += " bg-success";
+
+		<div class="col-sm-3 flex-column rounded maxW250" style="padding:10px">
+			<div class="card">
+				<img class="card-img-top" alt="@el.FbName" src="@largePicUrl" />
+				<div class="card-block">
+					<div id="card-@el.Id">
+						<div class="@headerClass">
+							<div class="card-header">
+								<a class="card-link card-title" data-toggle="collapse" data-parent="#card-@el.Id" href="#card-element-@el.Id">@el.FbName </a>
+							</div>
+							<div id="card-element-@el.Id" class="collapse">
+								@await Html.PartialAsync("_CommentEditorPartial", el.CommentsFrom.First())
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+	</div>
+}
+</div>
