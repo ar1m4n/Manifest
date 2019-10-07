@@ -221,5 +221,7 @@ __pycache__/
 #Mac OSX 
 .DS_Store
 
+*.db
+
 # Windows thumbnail cache files
 Thumbs.db
