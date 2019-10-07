@@ -1,38 +1,61 @@
-﻿@model List<ApplicationUser>
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+@model List<ApplicationUser>
 @{
     ViewData["Title"] = "Home Page";
+	var isInOkRole = !ViewData.ContainsKey("error");
 }
 
-<div class="container-fluid d-flex justify-content-center">
-@for(int i = 0; i < Model.Count(); i+=4)
-{
-	<div class="row flex-row" >
-	@for(int j = i; j < Model.Count() && j < i + 4; j++)
+<div class="container-fluid">
+	@if(isInOkRole)
 	{
-		ApplicationUser el = Model.ElementAt(j);
-		var largePicUrl = el.FbProfilePicUrl + "?type=large";
-		var headerClass = "card";
-		if(!string.IsNullOrEmpty(el.CommentsFrom.First().Comment))
-			headerClass += " bg-success";
+		@for(int i = 0; i < Model.Count(); i+=4)
+		{
+			<div class="row" >
+			@for(int j = i; j < Model.Count() && j < i + 4; j++)
+			{
+				ApplicationUser el = Model.ElementAt(j);
+				if(el.CommentsFrom.Count() > 0)
+				{
+					var largePicUrl = el.FbProfilePicUrl + "?type=large";
+					var headerClass = "card";
+					if(!string.IsNullOrEmpty(el.CommentsFrom.First().Comment))
+						headerClass += " bg-success";
 
-		<div class="col-sm-3 flex-column rounded maxW250" style="padding:10px">
-			<div class="card">
-				<img class="card-img-top" alt="@el.FbName" src="@largePicUrl" />
-				<div class="card-block">
-					<div id="card-@el.Id">
-						<div class="@headerClass">
-							<div class="card-header">
-								<a class="card-link card-title" data-toggle="collapse" data-parent="#card-@el.Id" href="#card-element-@el.Id">@el.FbName </a>
-							</div>
-							<div id="card-element-@el.Id" class="collapse">
-								@await Html.PartialAsync("_CommentEditorPartial", el.CommentsFrom.First())
+					<div class="col-sm-3 rounded maxW250" style="padding:10px">
+						<div class="card">
+							<img class="card-img-top" alt="@el.FbName" src="@largePicUrl" />
+							<div class="card-block">
+								<div id="card-@el.Id">
+									<div class="@headerClass">
+										<div class="card-header">
+											<a class="card-link card-title" data-toggle="collapse" data-parent="#card-@el.Id" href="#card-element-@el.Id">@el.FbName </a>
+										</div>
+										<div id="card-element-@el.Id" class="collapse">
+											@await Html.PartialAsync("_CommentEditorPartial", new ApplicationUserCommentModel(el.CommentsFrom.First(), UserManager.IsInRoleAsync(el.CommentsFrom.First().ToUser, "ok").Result))
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
+				}
+			}
+			</div>
+		}
+	}
+	else
+	{
+		<div class="row" >
+			<div class="col-md-12" >
+				<div class="alert alert-danger" role="alert">
+					<h4 class="alert-heading">Successful Login!</h4>
+					<p>You have been successfully logged in, but your account is not active. It must be approved by an administrator</p>
+					<hr>
 				</div>
 			</div>
 		</div>
 	}
-	</div>
-}
 </div>
+

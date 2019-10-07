@@ -10,6 +10,7 @@ using Manifest.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Manifest.Controllers
 {
@@ -34,20 +35,27 @@ namespace Manifest.Controllers
             if(m_currentUser == null)
                 m_currentUser = await _userManager.GetUserAsync(User);
 
+            if(!_userManager.IsInRoleAsync(m_currentUser, "ok").Result)
+            {
+                ViewData["error"] = true;
+                return View();
+            }
+
             var users = _userManager.Users
                 .Include(x => x.CommentsFrom)
+                    .ThenInclude(x => x.ToUser)
                 .Select(x => new ApplicationUser {
                     FbName = x.FbName,
                     Id = x.Id,
                     FbProfilePicUrl = x.FbProfilePicUrl,
                     Email = x.Email,
-                    CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == m_currentUser.Id).ToList()
-                }).ToList();
+                    CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == m_currentUser.Id).ToList(),
+                }).Where(x => x.Email != User.Identity.Name).ToList();
 
             foreach(var c in users)
             {
                 if(c.CommentsFrom.Count() == 0)
-                    c.CommentsFrom.Add(new ApplicationUserComment{FromUserId = m_currentUser.Id, ToUserId = c.Id});
+                    c.CommentsFrom.Add(new ApplicationUserComment{FromUserId = m_currentUser.Id, ToUserId = c.Id, ToUser = c});
             }
             return View(users);
         }
@@ -66,11 +74,13 @@ namespace Manifest.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangeComment([Bind("FromUserId,ToUserId,Comment")]ApplicationUserComment appComment)
+        public async Task<IActionResult> ChangeComment(ApplicationUserCommentModel appComment)
         {
             if(ModelState.IsValid)
             {
-                var found = await _context.UserComments.FindAsync(appComment.FromUserId, appComment.ToUserId);
+                var found = await _context.UserComments.Include(x => x.ToUser)
+                    .FirstOrDefaultAsync(x => x.FromUserId == appComment.FromId && x.ToUserId == appComment.ToId);
+
                 if(found != null)
                 {
                     found.Comment = appComment.Comment;
@@ -78,10 +88,25 @@ namespace Manifest.Controllers
                 }
                 else
                 {
-                    await _context.UserComments.AddAsync(appComment);
+                    var a = await _context.UserComments.AddAsync(new ApplicationUserComment{ FromUserId = appComment.FromId, ToUserId= appComment.ToId, Comment = appComment.Comment });
                 }
 
                 await _context.SaveChangesAsync();
+
+                if(User.IsInRole("admin"))
+                {
+                    var toUser = await _userManager.FindByIdAsync(appComment.ToId);
+                    bool userInRole = await _userManager.IsInRoleAsync(toUser, "ok");
+                    if(!appComment.IsInOkRole && userInRole)
+                    {
+                        await _userManager.RemoveFromRoleAsync(toUser, "ok");
+                    }
+                    else if(appComment.IsInOkRole && !userInRole)
+                    {
+                        await _userManager.AddToRoleAsync(toUser, "ok");
+                    }
+                }
+
             }
             return RedirectToAction("Index");
         }

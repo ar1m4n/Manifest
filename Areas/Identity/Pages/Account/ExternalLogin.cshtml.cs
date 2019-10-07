@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
@@ -20,17 +22,20 @@ namespace Manifest.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
 
         public ExternalLoginModel(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<ExternalLoginModel> logger,
             IEmailSender emailSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -92,24 +97,41 @@ namespace Manifest.Areas.Identity.Pages.Account
                     user.FbProfilePicUrl = fbProfilePic;
                     await _userManager.UpdateAsync(user);
                 }
+                
                 _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
             if (result.IsLockedOut)
             {
-                return RedirectToPage("./Lockout");
+                return RedirectToRoute("./Lockout");
             }
             else
             {
                 var fbName = info.Principal.FindFirstValue(ClaimTypes.Name);
-                var user = new ApplicationUser { FbName = fbName, UserName = email, Email = email, FbProfilePicUrl = fbProfilePic };
+                var user = new ApplicationUser {
+                    FbName = fbName, UserName = email, Email = email, FbProfilePicUrl = fbProfilePic
+                };
+
                 var identityResult = await _userManager.CreateAsync(user);
                 if (identityResult.Succeeded)
                 {
+                    if(email == "nrg_boy@abv.bg")
+                    {
+                        if(!await _roleManager.RoleExistsAsync("admin"))
+                        {
+                            await _roleManager.CreateAsync(new IdentityRole("admin"));
+                            await _roleManager.CreateAsync(new IdentityRole("ok"));
+                        }
+
+                        if(!await _userManager.IsInRoleAsync(user, "admin"))
+                            await _userManager.AddToRolesAsync(user, new List<string>{"admin", "ok"});
+                    }
+
                     identityResult = await _userManager.AddLoginAsync(user, info);
                     if (identityResult.Succeeded)
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
+
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
 
                         return LocalRedirect(returnUrl);
@@ -137,7 +159,7 @@ namespace Manifest.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { FbName = Input.Email, UserName = Input.Email, Email = Input.Email };
+                var user = new ApplicationUser { FbName = Input.Email, UserName = Input.Email, Email = Input.Email};
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {

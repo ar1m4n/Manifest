@@ -1,14 +1,22 @@
-@using Microsoft.AspNetCore.Identity
 @using Manifest.Data
 
-@model ApplicationUserComment
+@model ApplicationUserCommentModel
 
 <form class="md-form" asp-controller="Home" asp-action="ChangeComment" method="post">
     <i class="fa fa-pencil prefix"></i>
-    <input asp-for="FromUserId" type="hidden" />
-    <input asp-for="ToUserId" type="hidden" />
+    <input asp-for="FromId" type="hidden" />
+    <input asp-for="ToId" type="hidden" />
     <textarea asp-for="Comment" class="md-textarea form-control" rows="3"></textarea>
-    <label asp-for="Comment">Comment</label>
+    <label asp-for="Comment">Comment</label><br/>
+    @if(User.IsInRole("admin"))
+    {
+        <input asp-for="IsInOkRole"/>
+        <label asp-for="IsInOkRole">Enable User</label>
+    }
+    else
+    {
+        <input asp-for="IsInOkRole" type="hidden"/>
+    }
     <div class="container-login100-form-btn">
         <div class="wrap-login100-form-btn">
             <div class="login100-form-bgbtn"></div>
