@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -39,6 +40,8 @@ namespace Manifest.Data
         public string FbName { get; set;}
 
         public string FbProfilePicUrl { get; set; }
+        
+        public string FbProfilePicLargeUrl { get; set; }
 
         public ICollection<ApplicationUserComment> CommentsTo { get; set; }
         public ICollection<ApplicationUserComment> CommentsFrom { get; set; }

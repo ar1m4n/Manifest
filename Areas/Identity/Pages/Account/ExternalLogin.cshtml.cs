@@ -95,6 +95,7 @@ namespace Manifest.Areas.Identity.Pages.Account
                 if(user.FbProfilePicUrl != fbProfilePic)
                 {
                     user.FbProfilePicUrl = fbProfilePic;
+                    user.FbProfilePicLargeUrl = fbProfilePic + "?type=large";
                     await _userManager.UpdateAsync(user);
                 }
                 
@@ -109,7 +110,7 @@ namespace Manifest.Areas.Identity.Pages.Account
             {
                 var fbName = info.Principal.FindFirstValue(ClaimTypes.Name);
                 var user = new ApplicationUser {
-                    FbName = fbName, UserName = email, Email = email, FbProfilePicUrl = fbProfilePic
+                    FbName = fbName, UserName = email, Email = email, FbProfilePicUrl = fbProfilePic, FbProfilePicLargeUrl = fbProfilePic + "?type=large"
                 };
 
                 var identityResult = await _userManager.CreateAsync(user);
@@ -124,7 +125,13 @@ namespace Manifest.Areas.Identity.Pages.Account
                         }
 
                         if(!await _userManager.IsInRoleAsync(user, "admin"))
+                        {
                             await _userManager.AddToRolesAsync(user, new List<string>{"admin", "ok"});
+                            var jore = new ApplicationUser {
+                                FbName = "Георги Стефанов", UserName = "jore@abv.bg", Email = "jore@abv.bg", FbProfilePicUrl = Url.Content("~/images/jore_small.jpg"), FbProfilePicLargeUrl = Url.Content("~/images/jore.jpg")
+                            };
+                            await _userManager.CreateAsync(jore);
+                        }
                     }
 
                     identityResult = await _userManager.AddLoginAsync(user, info);

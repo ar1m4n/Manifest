@@ -21,8 +21,6 @@ namespace Manifest.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        ApplicationUser m_currentUser;
-
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
@@ -32,10 +30,9 @@ namespace Manifest.Controllers
 
         public async Task<IActionResult> Index()
         {
-            if(m_currentUser == null)
-                m_currentUser = await _userManager.GetUserAsync(User);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
 
-            if(!_userManager.IsInRoleAsync(m_currentUser, "ok").Result)
+            if(!_userManager.IsInRoleAsync(currentUser, "ok").Result)
             {
                 ViewData["error"] = true;
                 return View();
@@ -48,14 +45,15 @@ namespace Manifest.Controllers
                     FbName = x.FbName,
                     Id = x.Id,
                     FbProfilePicUrl = x.FbProfilePicUrl,
+                    FbProfilePicLargeUrl = x.FbProfilePicLargeUrl,
                     Email = x.Email,
-                    CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == m_currentUser.Id).ToList(),
+                    CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == currentUser.Id).ToList(),
                 }).Where(x => x.Email != User.Identity.Name).ToList();
 
             foreach(var c in users)
             {
                 if(c.CommentsFrom.Count() == 0)
-                    c.CommentsFrom.Add(new ApplicationUserComment{FromUserId = m_currentUser.Id, ToUserId = c.Id, ToUser = c});
+                    c.CommentsFrom.Add(new ApplicationUserComment{FromUserId = currentUser.Id, ToUserId = c.Id, ToUser = c});
             }
             return View(users);
         }

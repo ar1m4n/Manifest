@@ -18,14 +18,13 @@
 				ApplicationUser el = Model.ElementAt(j);
 				if(el.CommentsFrom.Count() > 0)
 				{
-					var largePicUrl = el.FbProfilePicUrl + "?type=large";
 					var headerClass = "card";
 					if(!string.IsNullOrEmpty(el.CommentsFrom.First().Comment))
 						headerClass += " bg-success";
 
 					<div class="col-sm-3 rounded maxW250" style="padding:10px">
 						<div class="card">
-							<img class="card-img-top" alt="@el.FbName" src="@largePicUrl" />
+							<img class="card-img-top" alt="@el.FbName" src="@el.FbProfilePicLargeUrl" />
 							<div class="card-block">
 								<div id="card-@el.Id">
 									<div class="@headerClass">
