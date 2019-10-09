@@ -1,0 +1,20 @@
+@using Manifest.Data
+
+@model ApplicationUserComment
+
+
+<form class="md-form" asp-controller="Home" asp-action="ChangeCommentAdmin" method="post">
+    <img src="@Model.FromUser.FbProfilePicUrl" class="rounded-circle z-depth-0" alt="avatar image" />
+    <input asp-for="FromUserId" type="hidden" />
+    <input asp-for="ToUserId" type="hidden" />
+    <textarea asp-for="Comment" class="md-textarea form-control" rows="3"></textarea>
+    <label asp-for="Comment">Comment</label><br/>
+    <div class="container-login100-form-btn">
+        <div class="wrap-login100-form-btn">
+            <div class="login100-form-bgbtn"></div>
+            <button class="login100-form-btn" type="submit">
+                Save
+            </button>
+        </div>
+    </div>
+</form>

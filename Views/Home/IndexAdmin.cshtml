@@ -1,0 +1,33 @@
+﻿@model List<ApplicationUser>
+
+<div class="container-fluid">
+@for(int i = 0; i < Model.Count(); i+=4)
+{
+    <div class="row" >
+    @for(int j = i; j < Model.Count() && j < i + 4; j++)
+    {
+        ApplicationUser el = Model.ElementAt(j);
+        <div class="col-sm-3 rounded maxW250" style="padding:10px">
+            <div class="card">
+                <img class="card-img-top" alt="@el.FbName" src="@el.FbProfilePicLargeUrl" />
+                <div class="card-block">
+                    <div id="card-@el.Id">
+                        <div class="card">
+                            <div class="card-header">
+                                <a class="card-link card-title" data-toggle="collapse" data-parent="#card-@el.Id" href="#card-element-@el.Id">@el.FbName </a>
+                            </div>
+                            <div id="card-element-@el.Id" class="collapse">
+                                @foreach(var comment in el.CommentsFrom)
+                                {
+                                    @await Html.PartialAsync("_AdminCommentEditorPartial", comment)
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+}
+</div>

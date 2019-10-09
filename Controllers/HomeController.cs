@@ -38,7 +38,7 @@ namespace Manifest.Controllers
                 return View();
             }
 
-            var users = _userManager.Users
+            var users = await _userManager.Users
                 .Include(x => x.CommentsFrom)
                     .ThenInclude(x => x.ToUser)
                 .Select(x => new ApplicationUser {
@@ -50,7 +50,7 @@ namespace Manifest.Controllers
                     CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == currentUser.Id).Select(y => new ApplicationUserComment{
                         FromUser = currentUser, ToUser = x, FromUserId = currentUser.Id, ToUserId = x.Id, Comment = y.Comment
                     }).ToList(),
-                }).Where(x => x.Email != User.Identity.Name).ToList();
+                }).Where(x => x.Email != User.Identity.Name).ToListAsync();
 
             foreach(var c in users)
             {
@@ -60,9 +60,32 @@ namespace Manifest.Controllers
             return View(users);
         }
 
-        public IActionResult Privacy()
+        [Authorize(Roles="admin")]
+        public async Task<IActionResult> IndexAdmin()
         {
-            return View();
+            var users = await _context.Users
+                .Include(x => x.CommentsTo)
+                .Select(x => x).ToListAsync();
+
+            return View(users);
+        }
+
+        [Authorize(Roles="admin")]
+        public async Task<IActionResult> Dogovor()
+        {
+            var model = new ContractModel {
+                Users = await _context.Users
+                    .Include(x => x.CommentsTo)
+                    .Select(x => x).ToListAsync(),
+                Date = new DateTime(2019, 10, 12).ToString("dd.MM.yyyy"),
+                Address = @"Град Сапарева Баня, ресторант ""Рилски Езера""",
+                NameBG = "БЗДРНЦ",
+                NameEN = "Bezdarnici",
+                BzdrncCity = "Дупница",
+                BzdrncAddress = "улица Венелин 69"
+            };
+
+            return View(model);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -74,7 +97,7 @@ namespace Manifest.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangeComment(ApplicationUserCommentModel appComment)
+        public async Task<IActionResult> ChangeComment([Bind("ToId,FromId,Comment,IsInOkRole")]ApplicationUserCommentModel appComment)
         {
             if(ModelState.IsValid)
             {
@@ -109,6 +132,16 @@ namespace Manifest.Controllers
 
             }
             return RedirectToAction("Index");
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles="admin")]
+        public async Task<IActionResult> ChangeCommentAdmin([Bind("FromUserId,ToUserId,Comment")]ApplicationUserComment appComment)
+        {
+            return await ChangeComment(new ApplicationUserCommentModel {
+                FromId = appComment.FromUserId, ToId = appComment.ToUserId, Comment = appComment.Comment, IsInOkRole = true
+            });
         }
     }
 }
