@@ -47,7 +47,9 @@ namespace Manifest.Controllers
                     FbProfilePicUrl = x.FbProfilePicUrl,
                     FbProfilePicLargeUrl = x.FbProfilePicLargeUrl,
                     Email = x.Email,
-                    CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == currentUser.Id).ToList(),
+                    CommentsFrom = x.CommentsFrom.Where(c => c.FromUserId == currentUser.Id).Select(y => new ApplicationUserComment{
+                        FromUser = currentUser, ToUser = x, FromUserId = currentUser.Id, ToUserId = x.Id, Comment = y.Comment
+                    }).ToList(),
                 }).Where(x => x.Email != User.Identity.Name).ToList();
 
             foreach(var c in users)

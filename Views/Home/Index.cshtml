@@ -19,8 +19,9 @@
 				if(el.CommentsFrom.Count() > 0)
 				{
 					var headerClass = "card";
-					if(!string.IsNullOrEmpty(el.CommentsFrom.First().Comment))
+					if(!string.IsNullOrEmpty(el.CommentsFrom.First().Comment)) {
 						headerClass += " bg-success";
+					}
 
 					<div class="col-sm-3 rounded maxW250" style="padding:10px">
 						<div class="card">
