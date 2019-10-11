@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @using Manifest.Data
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -21,6 +21,7 @@
                         <form  asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
                             <button type="submit" class="dropdown-item">Logout</button>
                         </form>
+                        @Html.ActionLink("View Contract", "Dogovor", "Home", null, new { @class="dropdown-item" })
                         @if(User.IsInRole("admin"))
                         {
                             @Html.ActionLink("View All Comments", "IndexAdmin", "Home", null, new { @class="dropdown-item" })

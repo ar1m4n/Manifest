@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -70,13 +70,22 @@ namespace Manifest.Controllers
             return View(users);
         }
 
-        [Authorize(Roles="admin")]
         public async Task<IActionResult> Dogovor()
         {
             var model = new ContractModel {
                 Users = await _context.Users
                     .Include(x => x.CommentsTo)
+                        .ThenInclude(x => x.FromUser)
+                    .Include(x => x.CommentsTo)
+                        .ThenInclude(x => x.ToUser)
                     .Select(x => x).ToListAsync(),
+                User = await _context.Users
+                    .Include(x => x.CommentsTo)
+                        .ThenInclude(x => x.FromUser)
+                    .Include(x => x.CommentsTo)
+                        .ThenInclude(x => x.ToUser)
+                    .Where(x => x.Email == User.Identity.Name)
+                    .SingleAsync(),
                 Date = new DateTime(2019, 10, 12).ToString("dd.MM.yyyy"),
                 Address = @"Град Сапарева Баня, ресторант ""Рилски Езера""",
                 NameBG = "БЗДРНЦ",

@@ -31,6 +31,8 @@ namespace Manifest.Models
     public class ContractModel
     {
         public List<ApplicationUser> Users { get; set; }
+        
+        public ApplicationUser User { get; set; }
 
         public string Date { get; set; }
 
